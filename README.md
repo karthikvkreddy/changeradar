@@ -119,6 +119,10 @@ pip install -r scripts/requirements-import.txt
 python scripts/import_public_seed.py
 ```
 
+## Roadmap
+
+Upcoming work is listed in [ROADMAP.md](ROADMAP.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and pull requests are welcome.

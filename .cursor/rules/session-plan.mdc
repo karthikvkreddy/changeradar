@@ -1,0 +1,30 @@
+---
+description: ChangeRadar session roadmap and what not to undo
+alwaysApply: true
+---
+
+# ChangeRadar — next sessions
+
+Engine v0.2 is published. Do not restart Phase 0–6. Cosine score = lookalike ranking, not P(outage).
+
+## Done (do not redo)
+
+- MiniLM retrieve + CLI + Gradio + static HF Space
+- Public seed 1,513 (RCAEval + Cloud-OpsBench + AnoMod labels only; no AnoMod.zip)
+- Hub dataset `karthikreddyv/changeradar-incidents`; git `karthikvkreddy/changeradar` (`main`)
+- Default git corpus = 18 handwritten demos only
+- Mined GitHub issues: local `data/local/github/` (gitignored). Eval `--suite github` Hit@1 0.94 is same-document, not a prod claim
+- User verified `score-diff`: memory-cut → inc-001 HIGH; docs-only ConfigMap typo → MED (false-ish)
+
+## Next (in order)
+
+- **A (this repo):** CI tests for `score-diff` / `diffparse`. Memory diff → inc-001 HIGH; docs-only must not look like an outage.
+- **B (`changeradar-corpus`):** Helm-shaped change text as queries, issue as incident. Re-eval `--suite github`.
+- **C (this repo):** Score the same queries against `data/public` (1.5k). Decide default index (demo vs public).
+- **D (this repo):** BYO ingest of private incidents + real `helm diff`.
+- **E (later):** embedding fine-tune — only after B is not same-document and C/D look worth improving.
+
+## Do not
+
+- Mix mined GitHub issue bodies into `data/incidents.jsonl` or the Hub dataset
+- Fine-tune yet; download AnoMod.zip / LEMMA; call Hit@k an outage probability
