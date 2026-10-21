@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "changeradar"
+version = "0.2.0"
+description = "Score Kubernetes and Helm changes against past incidents using sentence embeddings."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "ChangeRadar contributors" }]
+keywords = ["kubernetes", "helm", "sre", "embeddings", "incident"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: System :: Systems Administration",
+]
+dependencies = [
+  "huggingface_hub>=0.26.0",
+  "sentence-transformers>=3.0.0",
+  "numpy>=1.26.0",
+  "gradio>=5.0.0",
+]
+
+[project.optional-dependencies]
+import-seed = ["pandas>=2.0.0", "pyarrow>=14.0.0"]
+
+[project.scripts]
+changeradar = "changeradar.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/karthikvkreddy/changeradar"
+Dataset = "https://huggingface.co/datasets/karthikreddyv/changeradar-incidents"
+Demo = "https://huggingface.co/spaces/karthikreddyv/changeradar"
+
+[tool.setuptools.packages.find]
+include = ["changeradar*"]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase 1 — validate the Kubernetes/Helm seed corpus (JSONL)."""
+"""Validate incident and change JSONL required fields and unique ids."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ def main() -> int:
     print("\nSample incident tags:")
     for row in incidents[:3]:
         print(f"  {row['id']}: {', '.join(row['tags'])}")
-    print("\nPhase 1 corpus OK.")
+    print("\nCorpus OK.")
     return 0
 
 

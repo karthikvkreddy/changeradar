@@ -5,7 +5,7 @@ Build a ~1.5k public seed from published case labels.
 Sources:
   - phamquiluan/RCAEval (735 Chaos/fault-injection cases, MIT)
   - LLM4Ops/Cloud-OpsBench (754 K8s incident snapshots, MIT)
-  - EvoTestOps/AnoMod (24 Table-2 cases, GitHub MIT) — labels only
+  - EvoTestOps/AnoMod (24 Table-2 cases, MIT on GitHub) — labels only
 
 We do NOT copy telemetry (no AnoMod.zip / Zenodo dump). We derive
 incident + change text from published labels. Gold pairs are the same
