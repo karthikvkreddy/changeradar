@@ -20,6 +20,9 @@ DEFAULT_EVAL_HAND = ROOT / "data" / "eval" / "handwritten.jsonl"
 DEFAULT_PUBLIC_INC = ROOT / "data" / "public" / "incidents.jsonl"
 DEFAULT_PUBLIC_CHG = ROOT / "data" / "public" / "changes.jsonl"
 DEFAULT_PUBLIC_GOLD = ROOT / "data" / "public" / "gold_pairs.jsonl"
+DEFAULT_GH_INC = ROOT / "data" / "local" / "github" / "incidents.jsonl"
+DEFAULT_GH_CHG = ROOT / "data" / "local" / "github" / "changes.jsonl"
+DEFAULT_GH_GOLD = ROOT / "data" / "local" / "github" / "gold_pairs.jsonl"
 
 
 def _incidents_path(args: argparse.Namespace) -> Path:
@@ -144,10 +147,23 @@ def cmd_eval(args: argparse.Namespace) -> int:
             if args.limit:
                 queries, gold_ids = queries[: args.limit], gold_ids[: args.limit]
             results.append(run_eval(name="public", incidents=incidents, queries=queries, gold_incident_ids=gold_ids))
+    if suite == "github":
+        if not DEFAULT_GH_GOLD.exists():
+            print(
+                "github suite missing — copy changeradar-corpus/export into data/local/github/ "
+                "(see data/local/README.md)",
+                file=sys.stderr,
+            )
+            return 1
+        incidents = load_jsonl(DEFAULT_GH_INC)
+        queries, gold_ids = load_suite_queries(DEFAULT_GH_GOLD, DEFAULT_GH_CHG, ROOT)
+        if args.limit:
+            queries, gold_ids = queries[: args.limit], gold_ids[: args.limit]
+        results.append(run_eval(name="github", incidents=incidents, queries=queries, gold_incident_ids=gold_ids))
     print("Retrieval only — not P(outage | change).\n")
     for r in results:
         print(r.format())
-        if r.n <= 20:
+        if r.n <= 80:
             print("\n".join(r.details))
             print()
     return 0
@@ -209,7 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
     ing.set_defaults(func=cmd_ingest)
 
     ev = sub.add_parser("eval", help="Retrieval Hit@1/Hit@3/MRR (not outage probability)")
-    ev.add_argument("--suite", choices=("handwritten", "public", "all"), default="handwritten")
+    ev.add_argument("--suite", choices=("handwritten", "public", "github", "all"), default="handwritten")
     ev.add_argument("--incidents", default=str(DEFAULT_INCIDENTS))
     ev.add_argument("--changes", default=str(DEFAULT_CHANGES))
     ev.add_argument("--limit", type=int, default=0, help="Cap public suite size (0 = all)")

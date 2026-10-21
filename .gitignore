@@ -10,6 +10,9 @@ build/
 .DS_Store
 .cache/
 data/index/
+data/index-*/
+data/local/*
+!data/local/README.md
 *.npy
 .ruff_cache/
 .pytest_cache/

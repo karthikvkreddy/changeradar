@@ -51,6 +51,9 @@ def family_key(inc_id: str, inc: dict[str, Any] | None = None) -> str:
     if inc_id.startswith("anom-"):
         # anom-tt-cpu_contention / anom-sn-cpu_contention → same type family
         return inc_id.split("-", 2)[-1]
+    if inc_id.startswith("gh-"):
+        # gh-helm-1193 → gh-helm  (project family, not issue number)
+        return "-".join(inc_id.split("-")[:2])
     if inc is not None and inc.get("root_cause"):
         return f"{inc.get('source', '')}|{inc.get('root_cause')}|{inc.get('blast_radius', '')}"
     return inc_id

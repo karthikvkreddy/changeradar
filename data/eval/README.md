@@ -6,10 +6,12 @@ These numbers measure **lookalike ranking**, not “this change will page.”
 |-------|------|
 | `handwritten.jsonl` | Original 18-incident demo + 2 Helm diffs |
 | `data/public/gold_pairs.jsonl` | 1,513 same-case labels from RCAEval + Cloud-OpsBench + AnoMod |
+| `data/local/github/` (gitignored) | Mined GitHub issues from `changeradar-corpus`. Same-document pairs. |
 
 ```bash
 python -m changeradar eval
 python -m changeradar eval --suite public
+python -m changeradar eval --suite github   # requires data/local/github/ (see data/local/README.md)
 ```
 
 Last handwritten run (MiniLM, 18-incident index): Hit@1 0.909, Hit@3 1.000, MRR 0.939.
