@@ -1,0 +1,6 @@
+# Phase 0–2 core
+huggingface_hub>=0.26.0
+sentence-transformers>=3.0.0
+numpy>=1.26.0
+
+gradio>=5.0.0

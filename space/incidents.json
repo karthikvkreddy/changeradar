@@ -1,0 +1,286 @@
+[
+  {
+    "id": "inc-001",
+    "title": "checkout-oom-after-helm-limit-cut",
+    "namespace": "checkout",
+    "date": "2024-03-12",
+    "summary": "Helm values reduced memory limits for checkout-api from 1Gi to 256Mi. Pods OOMKilled under peak cart traffic; error rate spiked for 18 minutes.",
+    "symptoms": "OOMKilled, CrashLoopBackOff, 5xx on /checkout",
+    "root_cause": "memory limit set below real steady-state usage after busy-hour load",
+    "blast_radius": "checkout-api, payments edge calls",
+    "tags": [
+      "helm",
+      "resources",
+      "memory",
+      "OOM"
+    ]
+  },
+  {
+    "id": "inc-002",
+    "title": "hpa-maxreplicas-starved-cluster",
+    "namespace": "platform",
+    "date": "2024-05-02",
+    "summary": "Helm chart raised HPA maxReplicas for search-api from 10 to 200. Autoscale event during sale caused node pool exhaustion and kubelet pressure cluster-wide.",
+    "symptoms": "Pending pods, DiskPressure, elevated scheduling latency",
+    "root_cause": "HPA maxReplicas unbounded relative to cluster capacity",
+    "blast_radius": "search-api, shared node pool, unrelated namespaces",
+    "tags": [
+      "helm",
+      "hpa",
+      "autoscaling",
+      "capacity"
+    ]
+  },
+  {
+    "id": "inc-003",
+    "title": "pdb-blocked-node-drain-during-upgrade",
+    "namespace": "payments",
+    "date": "2024-01-19",
+    "summary": "New PodDisruptionBudget minAvailable=100% on payments-gateway blocked node drains. Cluster upgrade stalled; old nodes flapped and connection resets rose.",
+    "symptoms": "drain timeout, Eviction blocked by PDB, elevated TCP resets",
+    "root_cause": "PDB too strict for rolling node replacement",
+    "blast_radius": "payments-gateway, node upgrade pipeline",
+    "tags": [
+      "pdb",
+      "drain",
+      "upgrade",
+      "kubernetes"
+    ]
+  },
+  {
+    "id": "inc-004",
+    "title": "networkpolicy-denied-redis-after-helm-sync",
+    "namespace": "orders",
+    "date": "2024-06-08",
+    "summary": "Helm release added default-deny NetworkPolicy without allowing egress to Redis. Orders service could not reach cache; latency and timeouts cascaded.",
+    "symptoms": "i/o timeout to redis, connection refused from policy drop",
+    "root_cause": "NetworkPolicy missing egress to Redis CIDR/port",
+    "blast_radius": "orders-api, redis clients in namespace",
+    "tags": [
+      "networkpolicy",
+      "helm",
+      "redis",
+      "egress"
+    ]
+  },
+  {
+    "id": "inc-005",
+    "title": "image-tag-latest-pulled-breaking-build",
+    "namespace": "inventory",
+    "date": "2023-11-30",
+    "summary": "Deployment image was :latest. Overnight rebuild of base image broke inventory-worker; CrashLoop after deploy with no chart version change.",
+    "symptoms": "CrashLoopBackOff, ImportError in startup logs",
+    "root_cause": "mutable latest tag instead of digest or immutable semver",
+    "blast_radius": "inventory-worker",
+    "tags": [
+      "image",
+      "latest",
+      "deploy",
+      "helm"
+    ]
+  },
+  {
+    "id": "inc-006",
+    "title": "rollingupdate-maxunavailable-too-high",
+    "namespace": "frontend",
+    "date": "2024-02-14",
+    "summary": "Helm set rollingUpdate maxUnavailable=50% on storefront Deployment. Half the pods terminated at once during release; CDN origin errors during Valentine peak.",
+    "symptoms": "503 from ingress, ready replicas dropped sharply",
+    "root_cause": "aggressive maxUnavailable during high traffic",
+    "blast_radius": "storefront, ingress backends",
+    "tags": [
+      "rollingupdate",
+      "helm",
+      "availability"
+    ]
+  },
+  {
+    "id": "inc-007",
+    "title": "configmap-hot-reload-bad-json",
+    "namespace": "auth",
+    "date": "2024-04-21",
+    "summary": "ConfigMap mounted into auth-service updated with invalid JSON feature flags. App hot-reloaded and all pods started failing auth token validation.",
+    "symptoms": "401 storm, config parse errors, all replicas unhealthy",
+    "root_cause": "invalid ConfigMap applied via Helm without schema validation",
+    "blast_radius": "auth-service, all dependent APIs",
+    "tags": [
+      "configmap",
+      "helm",
+      "config",
+      "auth"
+    ]
+  },
+  {
+    "id": "inc-008",
+    "title": "ingress-tls-secret-mismatch",
+    "namespace": "edge",
+    "date": "2024-07-03",
+    "summary": "Helm Ingress pointed tls.secretName to rotated secret that was not yet created in namespace. TLS handshake failures for api.example.com.",
+    "symptoms": "SSL_ERROR, default backend cert served, customer TLS alerts",
+    "root_cause": "Ingress TLS secret name out of sync with Secret resource",
+    "blast_radius": "public API ingress",
+    "tags": [
+      "ingress",
+      "tls",
+      "helm",
+      "secret"
+    ]
+  },
+  {
+    "id": "inc-009",
+    "title": "initcontainer-wait-for-migrate-hung",
+    "namespace": "billing",
+    "date": "2024-08-11",
+    "summary": "Helm chart added initContainer waiting for migrate Job. Job failed silently; new Pods stuck in Init forever; old ReplicaSet scaled down \u2192 outage.",
+    "symptoms": "Pod Initializing forever, Ready=0",
+    "root_cause": "init dependency on failed Job with no timeout/backoff UX",
+    "blast_radius": "billing-api",
+    "tags": [
+      "initcontainer",
+      "job",
+      "helm",
+      "migrate"
+    ]
+  },
+  {
+    "id": "inc-010",
+    "title": "resourcequota-blocked-new-pods",
+    "namespace": "data",
+    "date": "2024-03-28",
+    "summary": "Namespace ResourceQuota CPU was lowered via Helm umbrella chart. Deployments could not schedule new pods during rollout; old pods terminated first.",
+    "symptoms": "forbidden: exceeded quota, Deployment progress deadline",
+    "root_cause": "ResourceQuota too low for surge pods during RollingUpdate",
+    "blast_radius": "etl-workers in data namespace",
+    "tags": [
+      "resourcequota",
+      "helm",
+      "scheduling"
+    ]
+  },
+  {
+    "id": "inc-011",
+    "title": "servicemonitor-scrape-storm",
+    "namespace": "observability",
+    "date": "2024-05-19",
+    "summary": "Helm values enabled ServiceMonitor with 5s scrape and huge metric cardinality for checkout. Prometheus memory ballooned; alert evaluation delayed.",
+    "symptoms": "Prometheus OOM, rule evaluation lag, missing alerts",
+    "root_cause": "high-cardinality metrics + aggressive scrape interval",
+    "blast_radius": "monitoring stack, delayed incident detection",
+    "tags": [
+      "servicemonitor",
+      "prometheus",
+      "helm",
+      "cardinality"
+    ]
+  },
+  {
+    "id": "inc-012",
+    "title": "helm-hook-pre-upgrade-deleted-pvc-data",
+    "namespace": "analytics",
+    "date": "2023-12-09",
+    "summary": "pre-upgrade Helm hook Job ran a cleanup that deleted PVCs labeled app=analytics. StatefulSet lost volumes; dashboards blank after upgrade.",
+    "symptoms": "PVC Terminating, empty PersistentVolume claims, data loss",
+    "root_cause": "destructive Helm hook without dry-run guard",
+    "blast_radius": "analytics StatefulSet data",
+    "tags": [
+      "helm-hook",
+      "pvc",
+      "statefulset",
+      "data-loss"
+    ]
+  },
+  {
+    "id": "inc-013",
+    "title": "nodeaffinity-pinned-to-draining-pool",
+    "namespace": "ml",
+    "date": "2024-09-01",
+    "summary": "Deployment required nodeAffinity to gpu-spot pool. Spot interruption drained nodes; pods could not reschedule elsewhere; inference API down.",
+    "symptoms": "Pending Unschedulable, spot interruption events",
+    "root_cause": "hard affinity to interruptible pool without fallback",
+    "blast_radius": "inference-api",
+    "tags": [
+      "affinity",
+      "spot",
+      "scheduling",
+      "kubernetes"
+    ]
+  },
+  {
+    "id": "inc-014",
+    "title": "sidecar-injection-cpu-throttle",
+    "namespace": "mesh",
+    "date": "2024-02-27",
+    "summary": "Istio sidecar injection enabled via Helm label change. Sidecar default CPU limits starved app containers; p99 latency tripled.",
+    "symptoms": "CPU throttling, high p99, envoy proxy busy",
+    "root_cause": "sidecar resource defaults not tuned for latency-critical service",
+    "blast_radius": "mesh-injected services in namespace",
+    "tags": [
+      "istio",
+      "sidecar",
+      "cpu",
+      "helm"
+    ]
+  },
+  {
+    "id": "inc-015",
+    "title": "cronjob-concurrency-policy-forbid-backlog",
+    "namespace": "reports",
+    "date": "2024-06-22",
+    "summary": "CronJob concurrencyPolicy=Forbid with long-running job. Missed schedules piled up; when job finished, manual catch-up overloaded DB.",
+    "symptoms": "missed CronJob schedules, DB connection spikes later",
+    "root_cause": "Forbid + long runtime without monitoring missed runs",
+    "blast_radius": "reporting DB, CronJob consumers",
+    "tags": [
+      "cronjob",
+      "concurrency",
+      "database"
+    ]
+  },
+  {
+    "id": "inc-016",
+    "title": "liveness-probe-too-aggressive-after-chart-change",
+    "namespace": "catalog",
+    "date": "2024-04-04",
+    "summary": "Helm lowered liveness probe timeoutSeconds and period. Slow JVM warmup caused kubelet to kill pods repeatedly during rollout.",
+    "symptoms": "Liveness probe failed, restart thrash, rollout stuck",
+    "root_cause": "liveness probe tighter than startup characteristics",
+    "blast_radius": "catalog-api",
+    "tags": [
+      "probes",
+      "liveness",
+      "helm",
+      "jvm"
+    ]
+  },
+  {
+    "id": "inc-017",
+    "title": "horizontal-pod-disruption-during-vpa-update",
+    "namespace": "recs",
+    "date": "2024-08-30",
+    "summary": "VPA in updateMode=Auto resized recommendations mid-traffic. Pods restarted en masse; recommendation service flapped.",
+    "symptoms": "mass restarts, InPlaceOrRecreate events, error budget burn",
+    "root_cause": "VPA Auto mode on latency-sensitive Deployment",
+    "blast_radius": "recs-api",
+    "tags": [
+      "vpa",
+      "resources",
+      "restarts"
+    ]
+  },
+  {
+    "id": "inc-018",
+    "title": "service-selector-mismatch-after-label-rename",
+    "namespace": "notify",
+    "date": "2024-01-07",
+    "summary": "Helm chart renamed pod labels but Service selector not updated. Endpoints emptied; notifications silently dropped.",
+    "symptoms": "Endpoints empty, Service no pods, traffic blackhole",
+    "root_cause": "label selector drift between Service and Pod template",
+    "blast_radius": "notify-service",
+    "tags": [
+      "service",
+      "selector",
+      "labels",
+      "helm"
+    ]
+  }
+]

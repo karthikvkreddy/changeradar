@@ -1,0 +1,17 @@
+platform, search-api, HorizontalPodAutoscaler (autoscaling) has changed:
+  apiVersion: autoscaling/v2
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: search-api
+    namespace: platform
+  spec:
+    minReplicas: 3
+    maxReplicas:
+-     10
++     200
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          averageUtilization: 70

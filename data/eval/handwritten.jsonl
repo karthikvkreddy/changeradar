@@ -1,0 +1,11 @@
+{"change_id": "chg-001", "incident_id": "inc-001", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-002", "incident_id": "inc-002", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-003", "incident_id": "inc-003", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-004", "incident_id": "inc-004", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-005", "incident_id": "inc-005", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-006", "incident_id": "inc-006", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-007", "incident_id": "inc-007", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-008", "incident_id": "inc-008", "pair_type": "manual", "query_kind": "change"}
+{"change_id": "chg-010", "incident_id": "inc-009", "pair_type": "manual", "query_kind": "change"}
+{"diff_file": "data/diffs/checkout-memory.helm.diff", "incident_id": "inc-001", "pair_type": "manual", "query_kind": "diff"}
+{"diff_file": "data/diffs/hpa-maxreplicas.helm.diff", "incident_id": "inc-002", "pair_type": "manual", "query_kind": "diff"}

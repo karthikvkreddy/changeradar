@@ -1,0 +1,4 @@
+# Only needed to build data/public/ from Hub sources
+huggingface_hub>=0.26.0
+pandas>=2.0.0
+pyarrow>=16.0.0

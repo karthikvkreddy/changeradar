@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChangeRadar</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1a1d24;
+      --text: #e8eaed;
+      --muted: #9aa0a6;
+      --accent: #e8590c;
+      --high: #fa5252;
+      --med: #fab005;
+      --low: #51cf66;
+      --border: #2c313c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 64px; }
+    h1 { margin: 0 0 8px; font-size: 1.8rem; }
+    .lede { color: var(--muted); max-width: 46rem; margin-bottom: 22px; }
+    .grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin: 10px 0 6px; }
+    select, textarea, button {
+      width: 100%;
+      font: inherit;
+      color: var(--text);
+      background: #12151b;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    select, textarea { padding: 10px 12px; }
+    textarea { min-height: 160px; resize: vertical; }
+    button {
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .status { margin-top: 10px; color: var(--muted); font-size: 0.9rem; }
+    .overall { font-size: 1.05rem; margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .band { font-weight: 700; }
+    .HIGH { color: var(--high); }
+    .MED { color: var(--med); }
+    .LOW { color: var(--low); }
+    .hit { margin-top: 16px; }
+    .hit h3 { margin: 0 0 6px; font-size: 1rem; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ChangeRadar</h1>
+    <p class="lede">
+      Paste a Kubernetes / Helm change. The Hugging Face MiniLM model in your browser
+      embeds it and ranks lookalike past incidents by cosine similarity.
+      Scores are retrieval, not “will this page.”
+    </p>
+    <div class="grid">
+      <section class="card">
+        <label for="example">Seeded example</label>
+        <select id="example">
+          <option value="">— pick one or write your own —</option>
+        </select>
+        <label for="change">Proposed change</label>
+        <textarea id="change" placeholder="Describe the Helm values / manifest change…"></textarea>
+        <button id="score" disabled>Loading model…</button>
+        <p class="status" id="status">Downloading Xenova/all-MiniLM-L6-v2 (first visit only)…</p>
+      </section>
+      <section class="card" id="out">
+        <p class="status">Results appear here after you score a change.</p>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1";
+
+    const HIGH = 0.55;
+    const MED = 0.40;
+    const band = (s) => (s >= HIGH ? "HIGH" : s >= MED ? "MED" : "LOW");
+
+    const incidentText = (inc) =>
+      [
+        inc.title,
+        inc.summary,
+        `Root cause: ${inc.root_cause}`,
+        `Symptoms: ${inc.symptoms || ""}`,
+        `Blast radius: ${inc.blast_radius || ""}`,
+        `Tags: ${(inc.tags || []).join(", ")}`,
+      ].filter(Boolean).join("\n");
+
+    const changeText = (c) => `${c.title}\n${c.description}`.trim();
+    const cosine = (a, b) => a.reduce((sum, x, i) => sum + x * b[i], 0);
+
+    const status = document.getElementById("status");
+    const btn = document.getElementById("score");
+    const out = document.getElementById("out");
+    const example = document.getElementById("example");
+    const change = document.getElementById("change");
+
+    const [incidents, changes] = await Promise.all([
+      fetch("./incidents.json").then((r) => r.json()),
+      fetch("./changes.json").then((r) => r.json()),
+    ]);
+
+    for (const c of changes) {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = `${c.id} — ${c.title}`;
+      example.appendChild(opt);
+    }
+    example.addEventListener("change", () => {
+      const c = changes.find((x) => x.id === example.value);
+      if (c) change.value = changeText(c);
+    });
+
+    let extractor;
+    let incidentVecs;
+    try {
+      extractor = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+      const texts = incidents.map(incidentText);
+      const emb = await extractor(texts, { pooling: "mean", normalize: true });
+      incidentVecs = emb.tolist();
+      status.textContent = `Ready · ${incidents.length} incidents indexed in-browser.`;
+      btn.disabled = false;
+      btn.textContent = "Score change";
+    } catch (err) {
+      status.textContent = `Model failed to load: ${err}`;
+    }
+
+    btn.addEventListener("click", async () => {
+      const q = change.value.trim();
+      if (!q) {
+        out.innerHTML = "<p class='status'>Paste a change description first.</p>";
+        return;
+      }
+      btn.disabled = true;
+      status.textContent = "Embedding change…";
+      const qemb = await extractor(q, { pooling: "mean", normalize: true });
+      const qv = qemb.tolist()[0];
+      const ranked = incidents
+        .map((inc, i) => ({ inc, score: cosine(incidentVecs[i], qv) }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      const top = ranked[0];
+      status.textContent = "Done.";
+      btn.disabled = false;
+      out.innerHTML = `
+        <p class="overall">Overall risk (top match):
+          <span class="band ${band(top.score)}">${band(top.score)}</span>
+          — cosine ${top.score.toFixed(3)}</p>
+        <p class="status">Lookalike retrieval, not a prediction that the change will page.</p>
+        <table>
+          <thead><tr><th>Rank</th><th>Score</th><th>Band</th><th>Incident</th><th>Ns</th></tr></thead>
+          <tbody>
+            ${ranked
+              .map(
+                (h, i) => `<tr>
+                  <td>${i + 1}</td>
+                  <td class="mono">${h.score.toFixed(3)}</td>
+                  <td class="band ${band(h.score)}">${band(h.score)}</td>
+                  <td><span class="mono">${h.inc.id}</span> ${h.inc.title}</td>
+                  <td>${h.inc.namespace || ""}</td>
+                </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+        ${ranked
+          .map(
+            (h, i) => `<div class="hit">
+              <h3>${i + 1}. ${h.inc.title} <span class="mono">(${h.inc.id})</span></h3>
+              <div>Score: ${h.score.toFixed(3)} (${band(h.score)})</div>
+              <div><strong>Summary:</strong> ${h.inc.summary}</div>
+              <div><strong>Root cause:</strong> ${h.inc.root_cause}</div>
+            </div>`
+          )
+          .join("")}
+      `;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+checkout, checkout-api, Deployment (apps) has changed:
+  # Source: checkout/templates/deployment.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: checkout-api
+    namespace: checkout
+  spec:
+    template:
+      spec:
+        containers:
+        - name: checkout-api
+          resources:
+            limits:
+-             memory: 1Gi
++             memory: 256Mi
+              cpu: 500m

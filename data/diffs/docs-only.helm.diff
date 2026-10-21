@@ -1,0 +1,11 @@
+docs, docs-site, ConfigMap (core) has changed:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: docs-site
+    namespace: docs
+  data:
+    README.md: |
+-     Welcome to the internal docs site.
++     Welcome to the internal docs site (typo fixes).
+      No probe, HPA, or network changes.

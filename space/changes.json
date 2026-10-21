@@ -1,0 +1,72 @@
+[
+  {
+    "id": "chg-001",
+    "kind": "helm_values",
+    "service": "checkout-api",
+    "title": "Cut checkout-api memory limit to 256Mi",
+    "description": "Helm values.yaml: resources.limits.memory 1Gi -> 256Mi for checkout-api Deployment to save cost in prod."
+  },
+  {
+    "id": "chg-002",
+    "kind": "helm_values",
+    "service": "search-api",
+    "title": "Raise HPA maxReplicas to 200",
+    "description": "Increase search-api HorizontalPodAutoscaler maxReplicas from 10 to 200 ahead of flash sale."
+  },
+  {
+    "id": "chg-003",
+    "kind": "manifest",
+    "service": "payments-gateway",
+    "title": "Add PDB minAvailable 100%",
+    "description": "Create PodDisruptionBudget for payments-gateway with minAvailable: 100% to avoid any voluntary disruption."
+  },
+  {
+    "id": "chg-004",
+    "kind": "helm_values",
+    "service": "orders-api",
+    "title": "Enable default-deny NetworkPolicy",
+    "description": "Helm sync adds NetworkPolicy default deny ingress/egress for orders namespace; Redis access assumed via cluster DNS."
+  },
+  {
+    "id": "chg-005",
+    "kind": "helm_values",
+    "service": "inventory-worker",
+    "title": "Switch image to latest tag",
+    "description": "Change inventory-worker image from 1.8.3 to latest so CI does not bump chart on every build."
+  },
+  {
+    "id": "chg-006",
+    "kind": "helm_values",
+    "service": "storefront",
+    "title": "Faster rollout with maxUnavailable 50%",
+    "description": "Set strategy.rollingUpdate.maxUnavailable to 50% on storefront to speed deploys."
+  },
+  {
+    "id": "chg-007",
+    "kind": "configmap",
+    "service": "auth-service",
+    "title": "Update feature flag ConfigMap",
+    "description": "Patch auth-service ConfigMap feature_flags.json via Helm; no schema check in pipeline."
+  },
+  {
+    "id": "chg-008",
+    "kind": "ingress",
+    "service": "api-edge",
+    "title": "Point Ingress TLS to new secret name",
+    "description": "Ingress tls.secretName changed to api-tls-v2 before Secret api-tls-v2 is applied."
+  },
+  {
+    "id": "chg-009",
+    "kind": "unrelated",
+    "service": "docs-site",
+    "title": "Bump docs-site chart chart version only",
+    "description": "docs-site Helm chart appVersion bump for typo fixes in static markdown; no probe, HPA, or network changes."
+  },
+  {
+    "id": "chg-010",
+    "kind": "helm_values",
+    "service": "billing-api",
+    "title": "Add migrate initContainer gate",
+    "description": "billing-api Pods wait on initContainer until migrate Job completes before becoming Ready."
+  }
+]
